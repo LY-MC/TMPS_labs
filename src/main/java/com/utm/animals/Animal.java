@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public abstract class Animal {
+public abstract class Animal implements Cloneable {
     private int weight;
     private int height;
     private int age;
@@ -22,4 +22,13 @@ public abstract class Animal {
     }
 
     abstract public void makeSound();
+
+    @Override
+    public Animal clone() {
+        try {
+            return (Animal) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
 }

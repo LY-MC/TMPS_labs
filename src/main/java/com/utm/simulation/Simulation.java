@@ -1,12 +1,14 @@
 package com.utm.simulation;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Properties;
 
+import com.utm.animals.ElephantFactory;
+import com.utm.animals.HorseFactory;
+import com.utm.animals.LionFactory;
+import com.utm.animals.MonkeyFactory;
 import com.utm.clients.Client;
-import com.utm.enums.AnimalType;
 import com.utm.miscellaneous.Cage;
+import com.utm.util.ConfigurationManager;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
 import com.utm.zooworkers.Cashier;
@@ -21,11 +23,11 @@ public class Simulation {
     final Cage lionCage;
     Client client;
     final Cashier cashier;
-    private final Veterinarian veterinarian;
-    private final Zookeeper zookeeper;
-    private final SecurityGuard securityGuard;
+    final Veterinarian veterinarian;
+    final Zookeeper zookeeper;
+    final SecurityGuard securityGuard;
 
-    private Properties props;
+    final Properties props;
 
     int simulationHour = StaticUtils.OPENING_HOUR;
 
@@ -48,10 +50,10 @@ public class Simulation {
         this.veterinarian = veterinarian;
         this.zookeeper = zookeeper;
         this.securityGuard = securityGuard;
+        this.props = ConfigurationManager.getInstance().getProperties();
     }
 
-    public void runSimulation() throws IOException, InterruptedException {
-        initProps();
+    public void runSimulation() throws InterruptedException {
         populateCages();
         Printer.printInCages(elephantCage, horseCage, lionCage, monkeyCage);
         initAnimalsAge();
@@ -61,18 +63,11 @@ public class Simulation {
         }
     }
 
-    void initProps() throws IOException {
-        props = new Properties();
-        FileInputStream ip = new FileInputStream(System.getProperty("user.dir")
-                + "/src/main/resources/config.properties");
-        props.load(ip);
-    }
-
     void populateCages() {
-        monkeyCage.populateCage(Integer.parseInt(props.getProperty("numberOfMonkeys")), AnimalType.MONKEY);
-        elephantCage.populateCage(Integer.parseInt(props.getProperty("numberOfElephants")), AnimalType.ELEPHANT);
-        horseCage.populateCage(Integer.parseInt(props.getProperty("numberOfHorses")), AnimalType.HORSE);
-        lionCage.populateCage(Integer.parseInt(props.getProperty("numberOfLions")), AnimalType.LION);
+        monkeyCage.populateCage(Integer.parseInt(props.getProperty("numberOfMonkeys")), new MonkeyFactory());
+        elephantCage.populateCage(Integer.parseInt(props.getProperty("numberOfElephants")), new ElephantFactory());
+        horseCage.populateCage(Integer.parseInt(props.getProperty("numberOfHorses")), new HorseFactory());
+        lionCage.populateCage(Integer.parseInt(props.getProperty("numberOfLions")), new LionFactory());
     }
 
     void incrementHour() {
@@ -99,26 +94,26 @@ public class Simulation {
     }
 
     void handleClientBehavior() {
-        new ClientBehaviorHandler().handle(this, props);
+        new ClientBehaviorHandler().handle(this);
     }
 
     void handleSecurityGuardBehavior() {
-        new SecurityGuardBehaviorHandler().handle(this, securityGuard);
+        new SecurityGuardBehaviorHandler().handle(this);
     }
 
     void handleCleaningAndFeeding() {
-        new CleaningAndFeedingHandler().handle(this, simulationHour, zookeeper, wrongFood);
+        new CleaningAndFeedingHandler().handle(this);
     }
 
     void handleAnimalTreating() {
-        new AnimalTreatingHandler().handle(this, props, zookeeper, veterinarian);
+        new AnimalTreatingHandler().handle(this);
     }
 
     void handleHorseRiding() {
-        new HorseRidingHandler().handle(this, props);
+        new HorseRidingHandler().handle(this);
     }
 
     void handleTipping() {
-        new TippingHandler().handle(this, props);
+        new TippingHandler().handle(this);
     }
 }

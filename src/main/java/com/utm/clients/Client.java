@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-abstract public class Client {
+public abstract class Client {
     private int age;
     private int happiness;
 

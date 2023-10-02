@@ -5,21 +5,21 @@ import com.utm.zooworkers.SecurityGuard;
 
 import java.util.Arrays;
 
-public class SecurityGuardBehaviorHandler {
-
-    public void handle(Simulation simulation, SecurityGuard securityGuard) {
-        securityGuard.updateSleeping();
-        if (securityGuard.isSleeping()) {
-            securityGuard.setHoursSlept(securityGuard.getHoursSlept() + 1);
+public class SecurityGuardBehaviorHandler implements Handler {
+    @Override
+    public void handle(Simulation simulation) {
+        simulation.securityGuard.updateSleeping();
+        if (simulation.securityGuard.isSleeping()) {
+            simulation.securityGuard.setHoursSlept(simulation.securityGuard.getHoursSlept() + 1);
         }
-        if (securityGuard.getHoursSlept() > 2) {
-            securityGuard.setSleeping(false);
-            securityGuard.setHoursSlept(0);
+        if (simulation.securityGuard.getHoursSlept() > 2) {
+            simulation.securityGuard.setSleeping(false);
+            simulation.securityGuard.setHoursSlept(0);
         }
-        if (securityGuard.isSleeping() && !simulation.clientCanEnter) {
+        if (simulation.securityGuard.isSleeping() && !simulation.clientCanEnter) {
             Printer.printSecurityGuardBehavior(true);
             Printer.printClientSneaks();
             Printer.printAnimalSounds(Arrays.asList(simulation.elephantCage, simulation.horseCage, simulation.lionCage, simulation.monkeyCage));
-        } else Printer.printSecurityGuardBehavior(securityGuard.isSleeping());
+        } else Printer.printSecurityGuardBehavior(simulation.securityGuard.isSleeping());
     }
 }

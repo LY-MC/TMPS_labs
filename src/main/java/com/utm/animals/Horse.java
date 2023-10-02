@@ -7,13 +7,6 @@ public class Horse extends Animal {
 
     public Horse() {
         super();
-
-        setAge(random.nextInt(29) + 1);
-        setMale(random.nextBoolean());
-        setIll(random.nextInt(100) % 10 == 0);
-        setHungry(random.nextBoolean());
-        setWeight(random.nextInt(90) + 360);
-        setHeight(random.nextInt(15) + 140);
     }
 
     public boolean isRideable() {

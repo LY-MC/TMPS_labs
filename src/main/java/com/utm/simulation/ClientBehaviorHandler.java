@@ -6,16 +6,16 @@ import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
 
 import java.util.Arrays;
-import java.util.Properties;
 
-class ClientBehaviorHandler {
+class ClientBehaviorHandler implements Handler{
 
-    public void handle(Simulation simulation, Properties props) {
+    @Override
+    public void handle(Simulation simulation) {
         int randomSeed = StaticUtils.random.nextInt(100);
         simulation.clientWantsToEnter = randomSeed % 2 == 0;
         simulation.clientCanEnter = randomSeed % 20 != 0;
         int newAge = StaticUtils.random.nextInt(80);
-        final int AGE_OF_MAJORITY = Integer.parseInt(props.getProperty("ageOfMajority"));
+        final int AGE_OF_MAJORITY = Integer.parseInt(simulation.props.getProperty("ageOfMajority"));
 
         if (simulation.clientWantsToEnter) {
             if (newAge < AGE_OF_MAJORITY) {
@@ -27,10 +27,10 @@ class ClientBehaviorHandler {
             simulation.client.setAge(newAge);
             simulation.client.buyTicket();
 
-            if (simulation.simulationHour < Integer.parseInt(props.getProperty("timeForDiscount"))) {
-                simulation.cashier.setTicketPrice(Integer.parseInt(props.getProperty("ticketPrice")));
+            if (simulation.simulationHour < Integer.parseInt(simulation.props.getProperty("timeForDiscount"))) {
+                simulation.cashier.setTicketPrice(Integer.parseInt(simulation.props.getProperty("ticketPrice")));
             } else {
-                simulation.cashier.setTicketPrice(Integer.parseInt(props.getProperty("ticketPriceWithDiscount")));
+                simulation.cashier.setTicketPrice(Integer.parseInt(simulation.props.getProperty("ticketPriceWithDiscount")));
             }
             simulation.cashier.sellTicket(simulation.clientCanEnter, newAge);
 

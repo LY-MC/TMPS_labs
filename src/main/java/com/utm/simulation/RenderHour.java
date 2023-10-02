@@ -9,7 +9,9 @@ public class RenderHour {
         simulation.handleCleaningAndFeeding();
         simulation.handleAnimalTreating();
         simulation.handleHorseRiding();
-        simulation.handleTipping();
+        if (simulation.client != null) {
+            simulation.handleTipping();
+        }
 
         System.out.println();
         Thread.sleep(3000);

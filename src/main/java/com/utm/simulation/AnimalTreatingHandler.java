@@ -2,24 +2,21 @@ package com.utm.simulation;
 
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
-import com.utm.zooworkers.Veterinarian;
-import com.utm.zooworkers.Zookeeper;
 
-import java.util.Properties;
+public class AnimalTreatingHandler implements Handler{
 
-public class AnimalTreatingHandler {
-
-    public void handle(Simulation simulation, Properties props, Zookeeper zookeeper, Veterinarian veterinarian) {
+    @Override
+    public void handle(Simulation simulation) {
         int counterIllAnimals = simulation.lionCage.countIllAnimals() + simulation.monkeyCage.countIllAnimals() + simulation.elephantCage.countIllAnimals() + simulation.horseCage.countIllAnimals();
-        if (simulation.clientWantsToEnter && simulation.client.getAge() < Integer.parseInt(props.getProperty("ageOfMajority")) && simulation.clientCanEnter) {
-            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(props.getProperty("childHappinessCoefficient")) * counterIllAnimals);
+        if (simulation.clientWantsToEnter && simulation.client.getAge() < Integer.parseInt(simulation.props.getProperty("ageOfMajority")) && simulation.clientCanEnter) {
+            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(simulation.props.getProperty("childHappinessCoefficient")) * counterIllAnimals);
         } else if (simulation.clientWantsToEnter && simulation.clientCanEnter) {
-            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(props.getProperty("adultHappinessCoefficient")) * counterIllAnimals);
+            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(simulation.props.getProperty("adultHappinessCoefficient")) * counterIllAnimals);
         }
 
         if (counterIllAnimals != 0) {
-            veterinarian.setTreating(true);
-            if (simulation.wrongFood % 10 == 0 && !zookeeper.isCleaning()) {
+            simulation.veterinarian.setTreating(true);
+            if (simulation.wrongFood % 10 == 0 && !simulation.zookeeper.isCleaning()) {
                 Printer.printVeterinarianIsTreating();
                 if (simulation.simulationHour == 9 || simulation.simulationHour == 18) {
                     simulation.lionCage.treatAnimals();

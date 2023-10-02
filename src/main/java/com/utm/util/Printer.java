@@ -1,6 +1,5 @@
 package com.utm.util;
 
-import com.utm.animals.Animal;
 import com.utm.miscellaneous.Cage;
 
 import java.util.List;
