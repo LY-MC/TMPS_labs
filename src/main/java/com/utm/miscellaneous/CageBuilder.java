@@ -1,13 +1,11 @@
 package com.utm.miscellaneous;
 
 public class CageBuilder {
-    private final CageDimensions dimensions;
     private boolean hasTrees = false;
     private boolean hasLake = false;
     private boolean hasDoubleFencing = false;
 
     public CageBuilder(CageDimensions dimensions) {
-        this.dimensions = dimensions;
     }
 
     public CageBuilder withTrees() {

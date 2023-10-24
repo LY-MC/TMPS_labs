@@ -1,5 +1,6 @@
-package com.utm.simulation;
+package com.utm.simulation.handlers;
 
+import com.utm.simulation.Simulation;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
 

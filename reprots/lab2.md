@@ -1,4 +1,4 @@
-# SOLID Principles
+# Creational Design Patterns
 
 
 ## Author: Maria Lesenco

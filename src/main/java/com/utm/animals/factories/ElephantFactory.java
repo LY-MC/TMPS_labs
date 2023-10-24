@@ -1,4 +1,7 @@
-package com.utm.animals;
+package com.utm.animals.factories;
+
+import com.utm.animals.Animal;
+import com.utm.animals.Elephant;
 
 import java.util.Random;
 

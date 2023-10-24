@@ -1,5 +1,7 @@
-package com.utm.simulation;
+package com.utm.simulation.handlers;
 
+import com.utm.clients.decorators.ClientHappinessReducerDecorator;
+import com.utm.simulation.Simulation;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
 
@@ -7,11 +9,11 @@ public class AnimalTreatingHandler implements Handler{
 
     @Override
     public void handle(Simulation simulation) {
-        int counterIllAnimals = simulation.lionCage.countIllAnimals() + simulation.monkeyCage.countIllAnimals() + simulation.elephantCage.countIllAnimals() + simulation.horseCage.countIllAnimals();
+        int counterIllAnimals = simulation.zoo.countIllAnimals();
         if (simulation.clientWantsToEnter && simulation.client.getAge() < Integer.parseInt(simulation.props.getProperty("ageOfMajority")) && simulation.clientCanEnter) {
-            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(simulation.props.getProperty("childHappinessCoefficient")) * counterIllAnimals);
+            new ClientHappinessReducerDecorator(simulation.client, Integer.parseInt(simulation.props.getProperty("childHappinessCoefficient")) * counterIllAnimals);
         } else if (simulation.clientWantsToEnter && simulation.clientCanEnter) {
-            simulation.client.setHappiness(simulation.client.getHappiness() - Integer.parseInt(simulation.props.getProperty("adultHappinessCoefficient")) * counterIllAnimals);
+            new ClientHappinessReducerDecorator(simulation.client, Integer.parseInt(simulation.props.getProperty("adultHappinessCoefficient")) * counterIllAnimals);
         }
 
         if (counterIllAnimals != 0) {

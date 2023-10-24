@@ -1,6 +1,7 @@
 package com.utm.util;
 
 import com.utm.miscellaneous.Cage;
+import com.utm.miscellaneous.CompositeCage;
 
 import java.util.List;
 
@@ -19,12 +20,9 @@ public class Printer {
         }
     }
 
-    public static void printInCages(Cage elephantCage, Cage horseCage, Cage lionCage, Cage monkeyCage) throws InterruptedException {
+    public static void printInCages(CompositeCage zoo) throws InterruptedException {
         System.out.println("In cages we have:");
-        elephantCage.printAnimalsInCage();
-        horseCage.printAnimalsInCage();
-        lionCage.printAnimalsInCage();
-        monkeyCage.printAnimalsInCage();
+        zoo.printAnimalsInCage();
         Thread.sleep(5000);
         System.out.println();
     }

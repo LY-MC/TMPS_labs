@@ -2,12 +2,12 @@ package com.utm.miscellaneous;
 
 import com.utm.animals.Animal;
 import com.utm.util.Printer;
-import com.utm.animals.AnimalFactory;
+import com.utm.animals.factories.AnimalFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cage {
+public class Cage implements CageComponent {
     private final CageDimensions dimensions;
     private final List<Animal> animalList;
     private final AnimalHealthManager animalHealthManager;

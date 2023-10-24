@@ -1,13 +1,16 @@
-package com.utm.simulation;
+package com.utm.simulation.handlers;
 
 import com.utm.clients.Adult;
 import com.utm.clients.Child;
+import com.utm.clients.decorators.HappyClientDecorator;
+import com.utm.clients.decorators.UnhappyClientDecorator;
+import com.utm.simulation.Simulation;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
 
 import java.util.Arrays;
 
-class ClientBehaviorHandler implements Handler{
+public class ClientBehaviorHandler implements Handler{
 
     @Override
     public void handle(Simulation simulation) {
@@ -34,12 +37,14 @@ class ClientBehaviorHandler implements Handler{
             }
             simulation.cashier.sellTicket(simulation.clientCanEnter, newAge);
 
-            simulation.client.enterZoo(simulation.clientCanEnter);
+
             if (randomSeed % 18 == 0) {
                 Printer.printCashierRude();
-                simulation.client.setHappiness(75);
+                UnhappyClientDecorator unhappyClient = new UnhappyClientDecorator(simulation.client);
+                unhappyClient.enterZoo(simulation.clientCanEnter);
             } else {
-                simulation.client.setHappiness(100);
+                HappyClientDecorator happyClient = new HappyClientDecorator(simulation.client);
+                happyClient.enterZoo(simulation.clientCanEnter);
             }
 
             if (simulation.clientCanEnter) {

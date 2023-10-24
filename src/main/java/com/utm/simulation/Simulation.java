@@ -2,12 +2,15 @@ package com.utm.simulation;
 
 import java.util.Properties;
 
-import com.utm.animals.ElephantFactory;
-import com.utm.animals.HorseFactory;
-import com.utm.animals.LionFactory;
-import com.utm.animals.MonkeyFactory;
+import com.utm.animals.factories.ElephantFactory;
+import com.utm.animals.factories.HorseFactory;
+import com.utm.animals.factories.LionFactory;
+import com.utm.animals.factories.MonkeyFactory;
 import com.utm.clients.Client;
 import com.utm.miscellaneous.Cage;
+import com.utm.miscellaneous.CompositeCage;
+import com.utm.simulation.behaviors.*;
+import com.utm.simulation.handlers.*;
 import com.utm.util.ConfigurationManager;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
@@ -17,27 +20,34 @@ import com.utm.zooworkers.Veterinarian;
 import com.utm.zooworkers.Zookeeper;
 
 public class Simulation {
-    final Cage monkeyCage;
-    final Cage elephantCage;
-    final Cage horseCage;
-    final Cage lionCage;
-    Client client;
-    final Cashier cashier;
-    final Veterinarian veterinarian;
-    final Zookeeper zookeeper;
-    final SecurityGuard securityGuard;
+    public final Cage monkeyCage;
+    public final Cage elephantCage;
+    public final Cage horseCage;
+    public final Cage lionCage;
+    public boolean clientWantsToEnter;
+    public Client client;
+    public final Cashier cashier;
+    public final Veterinarian veterinarian;
+    public final Zookeeper zookeeper;
+    public final SecurityGuard securityGuard;
 
-    final Properties props;
+    public final Properties props;
+    public boolean clientCanEnter;
+    public int wrongFood;
 
-    int simulationHour = StaticUtils.OPENING_HOUR;
+    public int simulationHour = StaticUtils.OPENING_HOUR;
 
     boolean discountAvailable;
 
-    boolean clientCanEnter;
+    CompositeCage africanSavannah = new CompositeCage();
+    public CompositeCage zoo = new CompositeCage();
 
-    boolean clientWantsToEnter;
-
-    int wrongFood = StaticUtils.random.nextInt(100);
+    private final SimulationBehavior cleaningAndFeedingBehavior;
+    private final SimulationBehavior clientBehavior;
+    private final SimulationBehavior animalTreatingBehavior;
+    private final SimulationBehavior horseRidingBehavior;
+    private final SimulationBehavior tippingBehavior;
+    private final SimulationBehavior securityGuardBehavior;
 
     public Simulation(Cage monkeyCage, Cage elephantCage, Cage horseCage, Cage lionCage,
                       Cashier cashier, Veterinarian veterinarian, Zookeeper zookeeper,
@@ -51,11 +61,22 @@ public class Simulation {
         this.zookeeper = zookeeper;
         this.securityGuard = securityGuard;
         this.props = ConfigurationManager.getInstance().getProperties();
+        africanSavannah.addCage(monkeyCage);
+        africanSavannah.addCage(elephantCage);
+        africanSavannah.addCage(lionCage);
+        zoo.addCage(africanSavannah);
+        zoo.addCage(horseCage);
+        this.cleaningAndFeedingBehavior = new CleaningAndFeedingBehavior(new CleaningAndFeedingHandler());
+        this.clientBehavior = new ClientBehavior(new ClientBehaviorHandler());
+        this.securityGuardBehavior = new SecurityGuardBehaviorBehavior(new SecurityGuardBehaviorHandler());
+        this.animalTreatingBehavior = new AnimalTreatingBehavior(new AnimalTreatingHandler());
+        this.horseRidingBehavior = new HorseRidingBehavior(new HorseRidingHandler());
+        this.tippingBehavior = new TippingBehavior(new TippingHandler());
     }
 
     public void runSimulation() throws InterruptedException {
         populateCages();
-        Printer.printInCages(elephantCage, horseCage, lionCage, monkeyCage);
+        Printer.printInCages(zoo);
         initAnimalsAge();
 
         while (simulationHour < StaticUtils.CLOSING_HOUR) {
@@ -63,7 +84,7 @@ public class Simulation {
         }
     }
 
-    void populateCages() {
+    public void populateCages() {
         monkeyCage.populateCage(Integer.parseInt(props.getProperty("numberOfMonkeys")), new MonkeyFactory());
         elephantCage.populateCage(Integer.parseInt(props.getProperty("numberOfElephants")), new ElephantFactory());
         horseCage.populateCage(Integer.parseInt(props.getProperty("numberOfHorses")), new HorseFactory());
@@ -94,26 +115,26 @@ public class Simulation {
     }
 
     void handleClientBehavior() {
-        new ClientBehaviorHandler().handle(this);
+        clientBehavior.performBehavior(this);
     }
 
     void handleSecurityGuardBehavior() {
-        new SecurityGuardBehaviorHandler().handle(this);
+        securityGuardBehavior.performBehavior(this);
     }
 
     void handleCleaningAndFeeding() {
-        new CleaningAndFeedingHandler().handle(this);
+        cleaningAndFeedingBehavior.performBehavior(this);
     }
 
     void handleAnimalTreating() {
-        new AnimalTreatingHandler().handle(this);
+        animalTreatingBehavior.performBehavior(this);
     }
 
     void handleHorseRiding() {
-        new HorseRidingHandler().handle(this);
+        horseRidingBehavior.performBehavior(this);
     }
 
     void handleTipping() {
-        new TippingHandler().handle(this);
+        tippingBehavior.performBehavior(this);
     }
 }
