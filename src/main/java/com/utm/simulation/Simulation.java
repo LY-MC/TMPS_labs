@@ -1,5 +1,8 @@
 package com.utm.simulation;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.utm.animals.factories.ElephantFactory;
@@ -11,6 +14,8 @@ import com.utm.miscellaneous.Cage;
 import com.utm.miscellaneous.CompositeCage;
 import com.utm.simulation.behaviors.*;
 import com.utm.simulation.handlers.*;
+import com.utm.simulation.observers.Event;
+import com.utm.simulation.observers.Observer;
 import com.utm.util.ConfigurationManager;
 import com.utm.util.Printer;
 import com.utm.util.StaticUtils;
@@ -20,34 +25,27 @@ import com.utm.zooworkers.Veterinarian;
 import com.utm.zooworkers.Zookeeper;
 
 public class Simulation {
-    public final Cage monkeyCage;
-    public final Cage elephantCage;
-    public final Cage horseCage;
-    public final Cage lionCage;
+    public Cage monkeyCage;
+    public Cage elephantCage;
+    public Cage horseCage;
+    public Cage lionCage;
+    private final ClientBehavior clientBehavior;
     public boolean clientWantsToEnter;
     public Client client;
     public final Cashier cashier;
     public final Veterinarian veterinarian;
     public final Zookeeper zookeeper;
     public final SecurityGuard securityGuard;
-
-    public final Properties props;
+    public Properties props;
     public boolean clientCanEnter;
     public int wrongFood;
-
     public int simulationHour = StaticUtils.OPENING_HOUR;
-
-    boolean discountAvailable;
-
     CompositeCage africanSavannah = new CompositeCage();
     public CompositeCage zoo = new CompositeCage();
+    private List<Observer> timeObservers = new ArrayList<>();
+    private List<SimulationMemento> mementos = new ArrayList<>();
 
-    private final SimulationBehavior cleaningAndFeedingBehavior;
-    private final SimulationBehavior clientBehavior;
-    private final SimulationBehavior animalTreatingBehavior;
-    private final SimulationBehavior horseRidingBehavior;
-    private final SimulationBehavior tippingBehavior;
-    private final SimulationBehavior securityGuardBehavior;
+
 
     public Simulation(Cage monkeyCage, Cage elephantCage, Cage horseCage, Cage lionCage,
                       Cashier cashier, Veterinarian veterinarian, Zookeeper zookeeper,
@@ -66,12 +64,19 @@ public class Simulation {
         africanSavannah.addCage(lionCage);
         zoo.addCage(africanSavannah);
         zoo.addCage(horseCage);
-        this.cleaningAndFeedingBehavior = new CleaningAndFeedingBehavior(new CleaningAndFeedingHandler());
+
         this.clientBehavior = new ClientBehavior(new ClientBehaviorHandler());
-        this.securityGuardBehavior = new SecurityGuardBehaviorBehavior(new SecurityGuardBehaviorHandler());
-        this.animalTreatingBehavior = new AnimalTreatingBehavior(new AnimalTreatingHandler());
-        this.horseRidingBehavior = new HorseRidingBehavior(new HorseRidingHandler());
-        this.tippingBehavior = new TippingBehavior(new TippingHandler());
+        CleaningAndFeedingBehavior cleaningAndFeedingBehavior = new CleaningAndFeedingBehavior(new CleaningAndFeedingHandler());
+        SecurityGuardBehaviorBehavior securityGuardBehaviorBehavior = new SecurityGuardBehaviorBehavior(new SecurityGuardBehaviorHandler());
+        AnimalTreatingBehavior animalTreatingBehavior = new AnimalTreatingBehavior(new AnimalTreatingHandler());
+        HorseRidingBehavior horseRidingBehavior = new HorseRidingBehavior(new HorseRidingHandler());
+        TippingBehavior tippingBehavior = new TippingBehavior(new TippingHandler());
+
+        clientBehavior.setNextBehavior(securityGuardBehaviorBehavior);
+        securityGuardBehaviorBehavior.setNextBehavior(cleaningAndFeedingBehavior);
+        cleaningAndFeedingBehavior.setNextBehavior(animalTreatingBehavior);
+        animalTreatingBehavior.setNextBehavior(horseRidingBehavior);
+        horseRidingBehavior.setNextBehavior(tippingBehavior);
     }
 
     public void runSimulation() throws InterruptedException {
@@ -80,7 +85,10 @@ public class Simulation {
         initAnimalsAge();
 
         while (simulationHour < StaticUtils.CLOSING_HOUR) {
-            renderHour();
+            incrementHour();
+            clientBehavior.performBehavior(this);
+            System.out.println();
+            Thread.sleep(5000);
         }
     }
 
@@ -93,48 +101,48 @@ public class Simulation {
 
     void incrementHour() {
         simulationHour++;
-
-        if (simulationHour >= StaticUtils.CLOSING_HOUR) {
-            simulationHour = StaticUtils.OPENING_HOUR;
-        }
-
-        Printer.printSimulationHour(simulationHour);
+        notifyObservers(Event.TIME_CHANGE);
     }
 
-    void checkForDiscount() {
-        discountAvailable = simulationHour == Integer.parseInt(props.getProperty("timeForDiscount"));
-        Printer.printTicketsWithDiscount(discountAvailable);
-    }
 
     private void initAnimalsAge() {
         new InitAnimalsAge().initAgeProps(elephantCage, horseCage, lionCage, monkeyCage, props);
     }
 
-    private void renderHour() throws InterruptedException {
-        new RenderHour().renderHour(this);
+    public void registerTimeObserver(Observer observer) {
+        timeObservers.add(observer);
     }
 
-    void handleClientBehavior() {
-        clientBehavior.performBehavior(this);
+    public void notifyObservers(Event event) {
+        if (Objects.requireNonNull(event) == Event.TIME_CHANGE) {
+            for (Observer observer : timeObservers) {
+                observer.update(event, this);
+            }
+        }
     }
 
-    void handleSecurityGuardBehavior() {
-        securityGuardBehavior.performBehavior(this);
+    public SimulationMemento createMemento() {
+        return new SimulationMemento(monkeyCage, elephantCage, horseCage, lionCage, client, simulationHour, props, wrongFood);
     }
 
-    void handleCleaningAndFeeding() {
-        cleaningAndFeedingBehavior.performBehavior(this);
+    public void restoreFromMemento(SimulationMemento memento) {
+        this.monkeyCage = memento.getMonkeyCage();
+        this.elephantCage = memento.getElephantCage();
+        this.horseCage = memento.getHorseCage();
+        this.lionCage = memento.getLionCage();
+        this.client = memento.getClient();
+        this.simulationHour = memento.getSimulationHour();
+        this.props = memento.getProps();
+        this.wrongFood = memento.getWrongFood();
     }
 
-    void handleAnimalTreating() {
-        animalTreatingBehavior.performBehavior(this);
+    public void saveCheckpoint() {
+        mementos.add(createMemento());
     }
 
-    void handleHorseRiding() {
-        horseRidingBehavior.performBehavior(this);
-    }
-
-    void handleTipping() {
-        tippingBehavior.performBehavior(this);
+    public void restoreToCheckpoint(int checkpointIndex) {
+        if (checkpointIndex >= 0 && checkpointIndex < mementos.size()) {
+            restoreFromMemento(mementos.get(checkpointIndex));
+        }
     }
 }
